@@ -28,9 +28,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.ivy.navigation.IvyPreview
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.component.BackButton
@@ -241,20 +239,4 @@ private fun LinkText(
       fontWeight = FontWeight.SemiBold,
     ),
   )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PaywallUiPreview() {
-  IvyPreview() {
-    PaywallUi(
-      uiState = PaywallUiState(
-        price = PriceUi(
-          amount = 4.99,
-          currency = "USD"
-        )
-      ),
-      onEvent = {},
-    )
-  }
 }

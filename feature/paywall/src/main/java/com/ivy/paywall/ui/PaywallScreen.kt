@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -98,58 +97,48 @@ private fun PaywallUi(
       }
 
       item {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Card(
-            modifier = Modifier
-              .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            onClick = {}
+        Card(
+          modifier = Modifier
+            .fillMaxWidth(),
+          shape = RoundedCornerShape(12.dp),
+          onClick = {}
+        ) {
+          Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
-            Column(
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-              verticalArrangement = Arrangement.spacedBy(6.dp),
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              verticalAlignment = Alignment.CenterVertically,
             ) {
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-              ) {
-                Column(Modifier.weight(1f)) {
-                  Text(
-                    text = "Ivy Pro — Monthly",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                  )
-                  Text(
-                    text = "Auto-renews. Cancel anytime in Google Play.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-                }
-
-                Spacer(Modifier.width(12.dp))
-
-                Column(horizontalAlignment = Alignment.End) {
-                  Text(
-                    text = "${uiState.price.amount} ${uiState.price.currency}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                  )
-                  Text(
-                    text = "monthly",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-                }
+              Column(Modifier.weight(1f)) {
+                Text(
+                  text = "Ivy Pro — Monthly",
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                  text = "Auto-renews. Cancel anytime in Google Play.",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
               }
 
-              Divider(color = MaterialTheme.colorScheme.outlineVariant)
-              Text(
-                text = "Selected",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-              )
+              Spacer(Modifier.width(12.dp))
+
+              Column(horizontalAlignment = Alignment.End) {
+                Text(
+                  text = "${uiState.price.amount} ${uiState.price.currency}",
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.SemiBold,
+                  color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                  text = "monthly",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              }
             }
           }
         }

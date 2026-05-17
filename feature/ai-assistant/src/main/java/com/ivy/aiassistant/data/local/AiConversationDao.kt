@@ -17,8 +17,11 @@ interface AiConversationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(conversation: AiConversationEntity)
 
-    @Query("UPDATE ai_conversations SET updatedAt = :updatedAt, totalTokens = :totalTokens WHERE id = :id")
-    suspend fun touch(id: String, updatedAt: Long, totalTokens: Int)
+    @Query(
+        "UPDATE ai_conversations SET updatedAt = :updatedAt, " +
+            "totalTokens = totalTokens + :tokensDelta WHERE id = :id"
+    )
+    suspend fun touch(id: String, updatedAt: Long, tokensDelta: Int)
 
     @Query("DELETE FROM ai_conversations WHERE id = :id")
     suspend fun delete(id: String)

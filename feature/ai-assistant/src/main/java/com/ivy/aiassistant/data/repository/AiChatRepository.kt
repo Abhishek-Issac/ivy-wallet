@@ -35,8 +35,12 @@ class AiChatRepository @Inject constructor(
         conversationDao.upsert(conversation.toEntity())
     }
 
-    suspend fun touchConversation(id: String, totalTokens: Int) {
-        conversationDao.touch(id, System.currentTimeMillis(), totalTokens)
+    /**
+     * Bumps a conversation's `updatedAt` and adds [tokensDelta] to its
+     * cumulative token count. Pass `0` to refresh `updatedAt` only.
+     */
+    suspend fun touchConversation(id: String, tokensDelta: Int) {
+        conversationDao.touch(id, System.currentTimeMillis(), tokensDelta)
     }
 
     suspend fun deleteConversation(id: String) {

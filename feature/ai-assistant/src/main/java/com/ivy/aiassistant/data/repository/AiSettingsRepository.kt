@@ -14,6 +14,7 @@ import com.ivy.aiassistant.domain.AiConfig
 import com.ivy.aiassistant.domain.AiProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,21 +36,14 @@ class AiSettingsRepository @Inject constructor(
 
     val configFlow: Flow<AiConfig> = dataStore.data.map { it.toConfig() }
 
-    suspend fun getConfig(): AiConfig {
-        var snapshot: AiConfig = AiConfig.defaults()
-        dataStore.data.collect {
-            snapshot = it.toConfig()
-            return@collect
-        }
-        return snapshot
-    }
+    suspend fun getConfig(): AiConfig = configFlow.first()
 
     suspend fun setEnabled(enabled: Boolean): Unit = update { it[ENABLED] = enabled }
 
     suspend fun setProvider(provider: AiProvider): Unit = update {
         it[PROVIDER] = provider.name
-        if (it[BASE_URL].isNullOrBlank()) it[BASE_URL] = provider.defaultBaseUrl
-        if (it[MODEL].isNullOrBlank()) it[MODEL] = provider.defaultModel
+        it[BASE_URL] = provider.defaultBaseUrl
+        it[MODEL] = provider.defaultModel
     }
 
     suspend fun setBaseUrl(baseUrl: String): Unit = update { it[BASE_URL] = baseUrl }

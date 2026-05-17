@@ -80,7 +80,7 @@ class ChatOrchestrator @Inject constructor(
             chat.saveMessage(conversationId, assistantMessage)
             chat.touchConversation(
                 id = conversationId,
-                totalTokens = promptTokens + completionTokens,
+                tokensDelta = promptTokens + completionTokens,
             )
         }
     }

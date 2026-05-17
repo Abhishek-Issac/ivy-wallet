@@ -8,8 +8,11 @@ CMDLINE_TOOLS_VERSION="11076708"
 SDK_PLATFORM="platforms;android-34"
 SDK_BUILD_TOOLS="build-tools;34.0.0"
 SDK_PLATFORM_TOOLS="platform-tools"
+BUILD_TASK="${1:-assembleDemo}"
+GRADLE_MAX_WORKERS="${GRADLE_MAX_WORKERS:-1}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="$REPO_ROOT/dist"
+AAPT2_OVERRIDE="$ANDROID_HOME/${SDK_BUILD_TOOLS//;/\/}/aapt2"
 
 if [ -t 1 ]; then
     CYAN='\033[1;36m'; YELLOW='\033[1;33m'; RED='\033[1;31m'; RESET='\033[0m'
@@ -49,6 +52,7 @@ ensure_prereqs() {
     if [ "${#need[@]}" -gt 0 ]; then
         apt_install "${need[@]}"
     fi
+    apt_install ca-certificates libc6 libstdc++6 zlib1g
 }
 
 java_major() {
@@ -91,32 +95,48 @@ ensure_android_sdk() {
     export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
 
     log "Accepting Android SDK licenses"
-    yes | sdkmanager --licenses >/dev/null || true
+    yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
 
     log "Installing Android SDK packages"
-    sdkmanager --install "$SDK_PLATFORM_TOOLS" "$SDK_PLATFORM" "$SDK_BUILD_TOOLS" >/dev/null
+    sdkmanager --sdk_root="$ANDROID_HOME" --install "$SDK_PLATFORM_TOOLS" "$SDK_PLATFORM" "$SDK_BUILD_TOOLS" >/dev/null
+}
+
+ensure_aapt2() {
+    [ -x "$AAPT2_OVERRIDE" ] || fatal "AAPT2 not found at $AAPT2_OVERRIDE"
+    log "AAPT2: $($AAPT2_OVERRIDE version)"
 }
 
 write_local_properties() {
     printf 'sdk.dir=%s\n' "$ANDROID_HOME" > "$REPO_ROOT/local.properties"
 }
 
-build_demo_apk() {
+build_apk() {
     cd "$REPO_ROOT"
     chmod +x ./gradlew
-    log "Building demo APK with ./gradlew --no-daemon assembleDemo"
-    ./gradlew --no-daemon assembleDemo
+    log "Building APK with ./gradlew --no-daemon --max-workers=$GRADLE_MAX_WORKERS $BUILD_TASK"
+    ./gradlew \
+        --no-daemon \
+        --max-workers="$GRADLE_MAX_WORKERS" \
+        -Pandroid.aapt2FromMavenOverride="$AAPT2_OVERRIDE" \
+        "$BUILD_TASK"
 }
 
 stage_apk() {
-    local src="$REPO_ROOT/app/build/outputs/apk/demo/app-demo.apk"
-    [ -f "$src" ] || fatal "Build completed but APK was not found at $src"
+    local src=""
+    local variant="${BUILD_TASK#assemble}"
+    variant="${variant,,}"
+    if [ -n "$variant" ] && [ -f "$REPO_ROOT/app/build/outputs/apk/$variant/app-$variant.apk" ]; then
+        src="$REPO_ROOT/app/build/outputs/apk/$variant/app-$variant.apk"
+    else
+        src="$(find "$REPO_ROOT/app/build/outputs/apk" -type f -name '*.apk' -printf '%T@ %p\n' | sort -nr | awk 'NR == 1 {print $2}')"
+    fi
+    [ -n "$src" ] && [ -f "$src" ] || fatal "Build completed but no APK was found under app/build/outputs/apk"
     mkdir -p "$DIST_DIR"
     local ts
     ts="$(date +%Y%m%d-%H%M%S)"
-    cp "$src" "$DIST_DIR/IvyWallet-demo-${ts}.apk"
-    cp "$src" "$DIST_DIR/IvyWallet-demo.apk"
-    log "Build complete: $DIST_DIR/IvyWallet-demo.apk"
+    cp "$src" "$DIST_DIR/IvyWallet-${variant:-latest}-${ts}.apk"
+    cp "$src" "$DIST_DIR/IvyWallet-latest.apk"
+    log "Build complete: $DIST_DIR/IvyWallet-latest.apk"
 }
 
 main() {
@@ -124,8 +144,9 @@ main() {
     ensure_prereqs
     ensure_java
     ensure_android_sdk
+    ensure_aapt2
     write_local_properties
-    build_demo_apk
+    build_apk
     stage_apk
 }
 

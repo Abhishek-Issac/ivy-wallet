@@ -34,6 +34,15 @@ class ChatOrchestrator @Inject constructor(
             emit(StreamingChunk.Error("AI is disabled in settings."))
             return@flow
         }
+        if (config.offlineModeOnly && !config.provider.isLocal) {
+            emit(
+                StreamingChunk.Error(
+                    "Offline-only mode is on. " +
+                        "Switch to a local provider like Ollama or LM Studio.",
+                ),
+            )
+            return@flow
+        }
         if (config.provider.requiresApiKey && settings.getApiKey(config.provider).isBlank()) {
             emit(StreamingChunk.Error("API key required for ${config.provider.displayName}."))
             return@flow

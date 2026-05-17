@@ -47,6 +47,8 @@ import com.ivy.legacy.Constants
 import com.ivy.legacy.IvyWalletPreview
 import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.drawColoredShadow
+import com.ivy.navigation.AiChatScreen
+import com.ivy.navigation.AiSettingsScreen
 import com.ivy.navigation.AttributionsScreen
 import com.ivy.navigation.ContributorsScreen
 import com.ivy.navigation.ExchangeRatesScreen
@@ -387,6 +389,29 @@ private fun BoxWithConstraintsScope.UI(
             CustomFeatures(
                 onClick = { nav.navigateTo(FeaturesScreen) }
             )
+        }
+
+        item {
+            SettingsSectionDivider(text = "AI assistant")
+
+            Spacer(Modifier.height(16.dp))
+
+            SettingsPrimaryButton(
+                icon = R.drawable.ic_custom_atom_m,
+                text = "Open Ivy AI",
+                backgroundGradient = GradientIvy,
+            ) {
+                nav.navigateTo(AiChatScreen)
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            SettingsDefaultButton(
+                icon = R.drawable.ic_custom_programming_m,
+                text = "AI assistant settings",
+            ) {
+                nav.navigateTo(AiSettingsScreen)
+            }
         }
 
 //        item {

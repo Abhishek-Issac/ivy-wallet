@@ -145,3 +145,7 @@ data object ReleasesScreen : Screen
 data object DisclaimerScreen : Screen
 
 data object PollScreen : Screen
+
+data object AiChatScreen : Screen
+
+data object AiSettingsScreen : Screen

@@ -71,16 +71,25 @@ class AiSettingsViewModel @Inject constructor(
         when (event) {
             is AiSettingsEvent.ToggleEnabled -> persist { setEnabled(event.enabled) }
             is AiSettingsEvent.ProviderChanged -> applyProviderChange(event.provider)
-            is AiSettingsEvent.BaseUrlChanged -> persist { setBaseUrl(event.baseUrl) }
+            is AiSettingsEvent.BaseUrlChanged -> {
+                baseUrl = event.baseUrl
+                viewModelScope.launch { repository.setBaseUrl(event.baseUrl) }
+            }
             is AiSettingsEvent.ApiKeyChanged -> {
                 apiKey = event.apiKey
                 viewModelScope.launch { repository.setApiKey(provider, event.apiKey) }
             }
-            is AiSettingsEvent.ModelChanged -> persist { setModel(event.model) }
+            is AiSettingsEvent.ModelChanged -> {
+                model = event.model
+                viewModelScope.launch { repository.setModel(event.model) }
+            }
             is AiSettingsEvent.TemperatureChanged -> persist { setTemperature(event.value) }
             is AiSettingsEvent.MaxTokensChanged -> persist { setMaxTokens(event.value) }
             is AiSettingsEvent.StreamingToggled -> persist { setStreaming(event.enabled) }
-            is AiSettingsEvent.SystemPromptChanged -> persist { setSystemPrompt(event.value) }
+            is AiSettingsEvent.SystemPromptChanged -> {
+                systemPrompt = event.value
+                viewModelScope.launch { repository.setSystemPrompt(event.value) }
+            }
             is AiSettingsEvent.ToolCallingToggled -> persist { setToolCallingEnabled(event.enabled) }
             is AiSettingsEvent.AppActionsToggled -> persist { setAppActionsEnabled(event.enabled) }
             is AiSettingsEvent.OfflineModeToggled -> persist { setOfflineModeOnly(event.enabled) }

@@ -67,13 +67,21 @@ class AnthropicAiClient @Inject constructor(
                     contentType(ContentType.Application.Json)
                     setBody(json.encodeToString(AnthropicChatRequest.serializer(), request))
                 }.execute { response ->
+                    var inputTokens = 0
                     parseSse(
                         channel = response.bodyAsChannel(),
                         onData = { payload ->
                             val obj = runCatching { json.parseToJsonElement(payload) as? JsonObject }
                                 .getOrNull() ?: return@parseSse
-                            val type = (obj["type"] as? JsonPrimitive)?.content
-                            when (type) {
+                            when ((obj["type"] as? JsonPrimitive)?.content) {
+                                "message_start" -> {
+                                    // Anthropic reports input_tokens only on message_start;
+                                    // message_delta later carries cumulative output_tokens.
+                                    val message = obj["message"] as? JsonObject
+                                    val usage = message?.get("usage") as? JsonObject
+                                    inputTokens = (usage?.get("input_tokens") as? JsonPrimitive)
+                                        ?.content?.toIntOrNull() ?: 0
+                                }
                                 "content_block_delta" -> {
                                     val delta = obj["delta"] as? JsonObject
                                     val text = (delta?.get("text") as? JsonPrimitive)?.content
@@ -82,11 +90,9 @@ class AnthropicAiClient @Inject constructor(
                                 "message_delta" -> {
                                     val usage = obj["usage"] as? JsonObject
                                     if (usage != null) {
-                                        val input = (usage["input_tokens"] as? JsonPrimitive)
-                                            ?.content?.toIntOrNull() ?: 0
                                         val output = (usage["output_tokens"] as? JsonPrimitive)
                                             ?.content?.toIntOrNull() ?: 0
-                                        send(StreamingChunk.Usage(input, output))
+                                        send(StreamingChunk.Usage(inputTokens, output))
                                     }
                                 }
                                 "message_stop" -> send(StreamingChunk.Done)

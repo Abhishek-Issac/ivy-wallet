@@ -22,11 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ivy.base.time.TimeConverter
 import com.ivy.base.time.TimeProvider
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,7 +34,6 @@ import javax.inject.Singleton
 @Singleton
 class AndroidDateTimePicker @Inject constructor(
     private val timeProvider: TimeProvider,
-    private val timeConverter: TimeConverter,
 ) : DateTimePicker {
     private var datePickerViewState by mutableStateOf<DatePickerViewState?>(null)
     private var timePickerViewState by mutableStateOf<TimePickerViewState?>(null)
@@ -60,10 +59,9 @@ class AndroidDateTimePicker @Inject constructor(
             confirmButton = {
                 ConfirmButton(onClick = {
                     datePickerViewState = null
-                    pickerState.selectedDateMillis?.let(Instant::ofEpochMilli)
-                        ?.let {
-                            with(timeConverter) { it.toLocalDate() }
-                    }?.let(viewState.onDatePicked)
+                    pickerState.selectedDateMillis
+                        ?.let(::datePickerMillisToLocalDate)
+                        ?.let(viewState.onDatePicked)
                 })
             },
             colors = DatePickerDefaults.colors(
@@ -156,6 +154,15 @@ class AndroidDateTimePicker @Inject constructor(
         val initialDate: Instant?,
         val onDatePicked: (LocalDate) -> Unit
     )
+
+    /**
+     * Material3's DatePickerState.selectedDateMillis is midnight **UTC** of the
+     * selected day, not midnight in the device zone. Converting it with a
+     * device-zone converter (as this did via `TimeConverter.toLocalDate()`)
+     * moved the day back by one in every zone behind UTC - issue #3495.
+     */
+    internal fun datePickerMillisToLocalDate(millis: Long): LocalDate =
+        Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
     @Immutable
     data class TimePickerViewState(
